@@ -1,0 +1,126 @@
+{
+  "name": "nginx_cross_origin_resource_sharing_error",
+  "description": "This incident type refers to errors that occur when attempting to make cross-origin resource sharing (CORS) requests to an Nginx web server. CORS is a security feature implemented by web browsers to prevent unauthorized access to resources on a different domain. When Nginx is misconfigured or not configured to allow CORS requests, web browsers will block the requests, resulting in errors. This can cause issues for web applications that rely on making requests to different domains for data or resources.",
+  "params": [
+    {
+      "name": "NGINX_SERVER_DOMAIN",
+      "value": ""
+    },
+    {
+      "name": "ORIGIN_DOMAIN",
+      "value": ""
+    },
+    {
+      "name": "DOMAIN_OR_IP_ADDRESS_TO_ALLOW_CORS_REQUESTS_FROM",
+      "value": ""
+    },
+    {
+      "name": "PATH_TO_NGINX_CONFIGURATION_FILE",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Nginx Cross Origin Resource Sharing Error\nThis incident type refers to errors that occur when attempting to make cross-origin resource sharing (CORS) requests to an Nginx web server. CORS is a security feature implemented by web browsers to prevent unauthorized access to resources on a different domain. When Nginx is misconfigured or not configured to allow CORS requests, web browsers will block the requests, resulting in errors. This can cause issues for web applications that rely on making requests to different domains for data or resources."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Verify the Nginx server is running"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `systemctl status nginx`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the Nginx configuration files"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `nginx -t`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the Nginx access logs for CORS errors"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `grep \"cross-origin\" /var/log/nginx/access.log`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the Nginx error logs for CORS errors"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `grep \"cross-origin\" /var/log/nginx/error.log`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Verify if the correct CORS headers are present in the response"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `curl -I -X GET -H \"Origin: ${ORIGIN_DOMAIN}\" ${NGINX_SERVER_DOMAIN}`"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the Nginx configuration files for CORS settings"
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `grep -r \"add_header\" /etc/nginx/`"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Configure Nginx to allow CORS requests by adding the appropriate headers to HTTP responses. This can be done using the \"add_header\" directive in Nginx configuration files."
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_cors_nginx_restart($DOMAIN_OR_IP_ADDRESS_TO_ALLOW_CORS_REQUESTS_FROM, $PATH_TO_NGINX_CONFIGURATION_FILE)"
+    }
+  ]
+}
